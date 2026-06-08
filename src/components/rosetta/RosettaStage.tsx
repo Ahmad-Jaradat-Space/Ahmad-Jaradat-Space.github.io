@@ -176,7 +176,7 @@ export function RosettaStage({
         <a href="https://github.com/Ahmad-Jaradat-Space" target="_blank" rel="noreferrer">
           GitHub
         </a>
-        <a href="mailto:jaradat08@gmail.com">Contact</a>
+        <a href="mailto:jaradat08@gmail.com">jaradat08@gmail.com</a>
         <a href="#top">Back to top</a>
       </div>
     </footer>
