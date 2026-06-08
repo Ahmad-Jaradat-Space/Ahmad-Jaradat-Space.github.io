@@ -9,7 +9,7 @@ export function SiteHeader({ face }: { face: Face }) {
       </div>
 
       <div className="r-wordmark">
-        <b>AHMAD JARADAT</b>
+        <b>Ahmad Jaradat</b>
         <span>Extracting Signal from Noise</span>
       </div>
 

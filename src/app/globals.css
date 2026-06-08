@@ -167,25 +167,44 @@ body {
 }
 .r-wordmark b {
   display: block;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-serif), serif;
   font-weight: 600;
-  font-size: clamp(1.25rem, 2.3vw, 2.05rem);
-  letter-spacing: 0.34em;
-  text-indent: 0.34em;
-  background: linear-gradient(180deg, #fff6dc 0%, var(--gold) 58%, color-mix(in srgb, var(--gold) 70%, #8a6a1f) 100%);
+  font-size: clamp(1.85rem, 3.6vw, 3.1rem);
+  letter-spacing: 0.012em;
+  line-height: 1.04;
+  /* cool platinum white, with a faint accent-tinted glow per face */
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f4f7fb 46%,
+    color-mix(in srgb, var(--accent-2) 16%, #dde4ee) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 1px 18px color-mix(in srgb, var(--gold) 30%, transparent);
+  text-shadow: 0 2px 32px color-mix(in srgb, var(--accent) 26%, transparent);
+  transition: text-shadow 700ms var(--ease-cinema);
 }
 .r-wordmark span {
-  display: block;
-  margin-top: 0.55rem;
-  font-size: clamp(0.55rem, 0.82vw, 0.68rem);
-  letter-spacing: 0.42em;
-  text-indent: 0.42em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.4vw, 0.95rem);
+  margin-top: 0.7rem;
+  font-size: clamp(0.52rem, 0.78vw, 0.64rem);
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+.r-wordmark span::before,
+.r-wordmark span::after {
+  content: "";
+  flex: 0 0 auto;
+  width: clamp(18px, 3.4vw, 52px);
+  height: 1px;
+  text-indent: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 50%, transparent), transparent);
 }
 .r-nav {
   justify-self: end;
