@@ -42,6 +42,7 @@ export const FACES: Face[] = [
     ],
     metrics: [
       { value: "PhD", label: "VLBI · Geodesy (2025)", source: "conferred, University of Tasmania, Dec 2025" },
+      { value: "MSc Eng", label: "Engineering", source: "Master of Science in Engineering" },
       { value: "6", label: "Publications", source: "journal and conference publications" },
       { value: "25", label: "Broadband sessions", source: "processed end to end" },
     ],

@@ -17,6 +17,9 @@ export function SiteHeader({ face }: { face: Face }) {
         <a href="https://github.com/Ahmad-Jaradat-Space" target="_blank" rel="noreferrer">
           GitHub
         </a>
+        <a href="https://www.linkedin.com/in/ahmad-jaradat-vlbi" target="_blank" rel="noreferrer">
+          LinkedIn
+        </a>
         <a
           href="https://mail.google.com/mail/?view=cm&fs=1&to=jaradat08@gmail.com"
           target="_blank"
