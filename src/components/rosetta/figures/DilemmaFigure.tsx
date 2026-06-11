@@ -291,6 +291,23 @@ function drawFork(
   ctx.restore();
 }
 
+function drawCaption(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  at: Point,
+  scale: number,
+  color: string,
+): void {
+  ctx.save();
+  ctx.font = `500 ${Math.max(9, scale * 10)}px ui-sans-serif, system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.62;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, at.x, at.y);
+  ctx.restore();
+}
+
 export default function DilemmaFigure({
   accent,
   accent2,
@@ -363,6 +380,25 @@ export default function DilemmaFigure({
         drawPlayer(ctx, carrier, Math.max(6, scale * 9), "rgba(255,79,56,0.9)", VERMILION, 1);
         drawPlayer(ctx, receiver, Math.max(6, scale * 8.5), "rgba(255,238,231,0.82)", WARM_WHITE, 0.82);
         drawFork(ctx, p(rect, 0.56, 0.28), scale, accent);
+
+        if (w >= 380) {
+          drawCaption(
+            ctx,
+            "carrier",
+            { x: carrier.x, y: carrier.y + rect.h * 0.11 },
+            scale,
+            "rgba(255,228,218,0.9)",
+          );
+          drawCaption(
+            ctx,
+            "free man",
+            { x: receiver.x, y: receiver.y + rect.h * 0.11 },
+            scale,
+            "rgba(255,238,231,0.95)",
+          );
+          drawCaption(ctx, "cover shadow", p(rect, 0.8, 0.16), scale, accent);
+          drawCaption(ctx, "cover shadow", p(rect, 0.8, 0.86), scale, accent);
+        }
       },
     );
   }, [accent, accent2, active, reduced]);

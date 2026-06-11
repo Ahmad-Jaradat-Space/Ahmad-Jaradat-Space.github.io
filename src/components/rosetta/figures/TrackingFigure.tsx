@@ -173,28 +173,81 @@ function drawTrackSystemLabel(
   ctx.restore();
 }
 
-function drawTag(
+type Tag = { text: string; rect: Rect; fs: number; anchor: Point };
+
+function tagFont(fs: number): string {
+  return `${fs}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+}
+
+function computeTag(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
   w: number,
-  accent: string,
-): void {
+): Tag {
   const fs = clamp(w * 0.026, 9, 12);
-  ctx.font = `${fs}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+  ctx.font = tagFont(fs);
   const padX = fs * 0.48;
   const padY = fs * 0.28;
   const tw = ctx.measureText(text).width;
-  const rect = {
-    x: clamp(x + fs * 0.85, 6, w - tw - padX * 2 - 6),
-    y: Math.max(6, y - fs * 2.15),
-    w: tw + padX * 2,
-    h: fs + padY * 2,
+  return {
+    text,
+    fs,
+    anchor: { x, y },
+    rect: {
+      x: clamp(x + fs * 0.85, 6, w - tw - padX * 2 - 6),
+      y: Math.max(6, y - fs * 2.15),
+      w: tw + padX * 2,
+      h: fs + padY * 2,
+    },
   };
+}
+
+function rectsTouch(a: Rect, b: Rect, gap: number): boolean {
+  return (
+    a.x < b.x + b.w + gap &&
+    a.x + a.w + gap > b.x &&
+    a.y < b.y + b.h + gap &&
+    a.y + a.h + gap > b.y
+  );
+}
+
+/** Push colliding tags upward so clustered players keep readable IDs. */
+function declutterTags(tags: Tag[]): void {
+  const placed: Rect[] = [];
+  for (const tag of tags) {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const hit = placed.find((r) => rectsTouch(tag.rect, r, 3));
+      if (!hit) break;
+      tag.rect.y = hit.y - tag.rect.h - 4;
+      if (tag.rect.y < 6) {
+        tag.rect.y = Math.max(...placed.map((r) => r.y + r.h)) + 4;
+      }
+    }
+    placed.push(tag.rect);
+  }
+}
+
+function drawTag(ctx: CanvasRenderingContext2D, tag: Tag, accent: string): void {
+  const { rect, fs } = tag;
+  const padX = fs * 0.48;
 
   ctx.save();
+  // leader line when the tag was pushed away from its box
+  const dy = tag.anchor.y - (rect.y + rect.h);
+  if (dy > fs * 1.2) {
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rect.x + rect.w * 0.5, rect.y + rect.h);
+    ctx.lineTo(tag.anchor.x, tag.anchor.y);
+    ctx.stroke();
+  }
+  ctx.font = tagFont(fs);
   roundRect(ctx, rect, 5);
+  ctx.globalAlpha = 1;
   ctx.fillStyle = "rgba(2,5,8,0.76)";
   ctx.fill();
   ctx.globalAlpha = 0.42;
@@ -205,7 +258,7 @@ function drawTag(
   ctx.fillStyle = HOT;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  ctx.fillText(text, rect.x + padX, rect.y + rect.h / 2);
+  ctx.fillText(tag.text, rect.x + padX, rect.y + rect.h / 2);
   ctx.restore();
 }
 
@@ -252,7 +305,7 @@ function drawTrack(
   t: number,
   w: number,
   accent: string,
-): void {
+): Tag {
   const point = trackPoint(track, t);
   const p = project(stage, point);
   const depth = (point.y + 1) / 2;
@@ -315,7 +368,7 @@ function drawTrack(
     h: body * 2.12,
   };
   drawYoloBox(ctx, box, accent, unit * 0.01);
-  drawTag(ctx, `ID ${track.id}`, box.x + box.w, box.y, w, accent);
+  return computeTag(ctx, `ID ${track.id}`, box.x + box.w, box.y, w);
 }
 
 function drawRadar(
@@ -400,7 +453,11 @@ export default function Component({ accent, accent2, active }: FigureProps) {
         const stage = stageRect(w, h);
         drawBackdrop(ctx, w, h, accent2);
         drawCalibrationGrid(ctx, stage);
-        for (const track of TRACKS) drawTrack(ctx, stage, track, t, w, accent);
+        const tags = TRACKS.map((track) =>
+          drawTrack(ctx, stage, track, t, w, accent),
+        );
+        declutterTags(tags);
+        for (const tag of tags) drawTag(ctx, tag, accent);
         drawTrackSystemLabel(ctx, stage, accent);
         drawRadar(ctx, w, h, TRACKS, t, accent, accent2);
       },

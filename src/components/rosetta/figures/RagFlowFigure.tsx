@@ -9,21 +9,21 @@ type StageNode = Point & { label: string; seed: number };
 type DocNode = Point & { seed: number; selected: boolean; rank?: number };
 
 const STAGES: readonly StageNode[] = [
-  { x: 0.13, y: 0.52, label: "QUERY", seed: 101 },
-  { x: 0.38, y: 0.52, label: "RETRIEVE", seed: 107 },
-  { x: 0.64, y: 0.52, label: "GROUND", seed: 113 },
-  { x: 0.87, y: 0.52, label: "ANSWER", seed: 127 },
+  { x: 0.13, y: 0.62, label: "QUERY", seed: 101 },
+  { x: 0.38, y: 0.62, label: "RETRIEVE", seed: 107 },
+  { x: 0.64, y: 0.62, label: "GROUND", seed: 113 },
+  { x: 0.87, y: 0.62, label: "ANSWER", seed: 127 },
 ];
 
 const DOCS: readonly DocNode[] = [
-  { x: 0.28, y: 0.2, seed: 211, selected: false },
-  { x: 0.36, y: 0.18, seed: 223, selected: true, rank: 1 },
-  { x: 0.46, y: 0.22, seed: 227, selected: false },
-  { x: 0.31, y: 0.32, seed: 229, selected: true, rank: 2 },
-  { x: 0.41, y: 0.32, seed: 233, selected: false },
-  { x: 0.5, y: 0.34, seed: 239, selected: true, rank: 3 },
-  { x: 0.34, y: 0.42, seed: 241, selected: false },
-  { x: 0.45, y: 0.43, seed: 251, selected: false },
+  { x: 0.27, y: 0.27, seed: 211, selected: false },
+  { x: 0.36, y: 0.24, seed: 223, selected: true, rank: 1 },
+  { x: 0.47, y: 0.28, seed: 227, selected: false },
+  { x: 0.3, y: 0.39, seed: 229, selected: true, rank: 2 },
+  { x: 0.41, y: 0.39, seed: 233, selected: false },
+  { x: 0.51, y: 0.41, seed: 239, selected: true, rank: 3 },
+  { x: 0.34, y: 0.5, seed: 241, selected: false },
+  { x: 0.45, y: 0.51, seed: 251, selected: false },
 ];
 
 function clamp01(value: number): number {
@@ -336,14 +336,16 @@ export default function RagFlowFigure({
       { active, reduced: Boolean(reduced), staticT: 3.25, speed: 0.014 },
       ({ ctx, w, h }, t) => {
         const scale = Math.max(0.74, Math.min(w, h) / 420);
+        const compact = h < 200;
+        const docLift = compact ? 0.05 : 0; // keep docs clear of the stage row on tiles
         const stages = STAGES.map((stage) => ({
           ...stage,
           p: toPoint(stage, w, h),
         }));
-        const query = stages[0]?.p ?? { x: w * 0.13, y: h * 0.52 };
-        const retrieve = stages[1]?.p ?? { x: w * 0.38, y: h * 0.52 };
-        const ground = stages[2]?.p ?? { x: w * 0.64, y: h * 0.52 };
-        const answer = stages[3]?.p ?? { x: w * 0.87, y: h * 0.52 };
+        const query = stages[0]?.p ?? { x: w * 0.13, y: h * 0.62 };
+        const retrieve = stages[1]?.p ?? { x: w * 0.38, y: h * 0.62 };
+        const ground = stages[2]?.p ?? { x: w * 0.64, y: h * 0.62 };
+        const answer = stages[3]?.p ?? { x: w * 0.87, y: h * 0.62 };
 
         const cycle = 4.9;
         const phase = (t % cycle) / cycle;
@@ -386,7 +388,7 @@ export default function RagFlowFigure({
           const base = toPoint(
             {
               x: doc.x + (rnd(doc.seed) - 0.5) * 0.012,
-              y: doc.y + (rnd(doc.seed + 1) - 0.5) * 0.012,
+              y: doc.y - docLift + (rnd(doc.seed + 1) - 0.5) * 0.012,
             },
             w,
             h,
@@ -404,7 +406,9 @@ export default function RagFlowFigure({
           drawDocument(ctx, pulled, activeDoc, doc.selected ? accent : accent2, scale, doc.rank);
         }
 
-        drawTopKLabel(ctx, w * 0.39, h * 0.135, retrieveLevel, accent, scale);
+        if (!compact) {
+          drawTopKLabel(ctx, w * 0.39, h * 0.13, retrieveLevel, accent, scale);
+        }
 
         const levels = [queryLevel, retrieveLevel, groundLevel, answerLevel] as const;
         for (const [i, stage] of stages.entries()) {

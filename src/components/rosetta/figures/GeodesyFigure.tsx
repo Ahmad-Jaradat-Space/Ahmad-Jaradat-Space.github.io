@@ -263,9 +263,15 @@ export default function Component({ accent, accent2, active }: FigureProps) {
         ctx.lineTo(quasarCue.x, quasarCue.y + 9);
         strokePath(ctx, accent, 0.58, 1);
 
+        const quasarLabel = w < 380 ? "QUASAR" : "QUASAR DIRECTION";
+        const quasarLabelW = ctx.measureText(quasarLabel).width;
         ctx.fillStyle = "white";
         ctx.globalAlpha = 0.5;
-        ctx.fillText("QUASAR DIRECTION", quasarCue.x - 38, quasarCue.y + 20);
+        ctx.fillText(
+          quasarLabel,
+          Math.min(quasarCue.x - quasarLabelW * 0.5, w - quasarLabelW - 8),
+          quasarCue.y + 20,
+        );
         ctx.globalAlpha = 1;
 
         for (const station of STATIONS) {

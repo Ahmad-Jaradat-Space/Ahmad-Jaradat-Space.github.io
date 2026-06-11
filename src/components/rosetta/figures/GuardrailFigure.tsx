@@ -65,7 +65,8 @@ function roundRect(
 
 function gateProgress(index: number): number {
   const gate = GATES[index];
-  return gate ? (gate.x - 0.16) / 0.7 : 1;
+  // maps a gate's x onto the chip path (startX 0.21w → endX 0.86w)
+  return gate ? (gate.x - 0.21) / 0.65 : 1;
 }
 
 function proposalY(proposal: Proposal, cy: number, band: number, t: number): number {
@@ -221,11 +222,12 @@ function drawProposalObject(
   alpha: number,
   color: string,
   stopped: boolean,
+  compact: boolean,
 ): void {
   if (alpha <= 0.02) return;
 
   const width = scale * (proposal.kind === "tool-call" ? 58 : 52);
-  const height = scale * 24;
+  const height = scale * (compact ? 16 : 24);
   glow(ctx, x, y, height * 2.5, color, alpha * 0.18);
   ctx.save();
   roundRect(ctx, x - width / 2, y - height / 2, width, height, scale * 6);
@@ -242,11 +244,15 @@ function drawProposalObject(
   ctx.font = `${Math.max(7, scale * 7.2)}px ui-sans-serif, system-ui, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("proposal", x, y - height * 0.12);
-  ctx.globalAlpha = alpha * 0.55;
-  ctx.fillStyle = "rgba(247,242,255,0.9)";
-  ctx.font = `${Math.max(6, scale * 5.9)}px ui-sans-serif, system-ui, sans-serif`;
-  ctx.fillText(proposal.kind, x, y + height * 0.24);
+  if (compact) {
+    ctx.fillText("proposal", x, y + height * 0.05);
+  } else {
+    ctx.fillText("proposal", x, y - height * 0.12);
+    ctx.globalAlpha = alpha * 0.55;
+    ctx.fillStyle = "rgba(247,242,255,0.9)";
+    ctx.font = `${Math.max(6, scale * 5.9)}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.fillText(proposal.kind, x, y + height * 0.24);
+  }
 
   if (stopped) {
     ctx.globalAlpha = alpha * 0.72;
@@ -269,12 +275,17 @@ function drawStream(
   accent: string,
   accent2: string,
 ): void {
+  const compact = h < 200;
   const cy = h * 0.52;
-  const startX = w * 0.16;
+  const startX = w * 0.21; // clear of the LLM glyph
   const endX = w * 0.86;
   const band = h * 0.28;
   const scale = Math.max(0.72, Math.min(w, h) / 320);
   const phase = (t * 0.115) % 1;
+  // fewer chips on tiles so lanes do not collide
+  const proposals = compact
+    ? PROPOSALS.filter((_, i) => i % 2 === 0)
+    : PROPOSALS;
 
   ctx.save();
   ctx.strokeStyle = "rgba(227,218,255,0.13)";
@@ -290,8 +301,8 @@ function drawStream(
     drawGate(ctx, w * gate.x, cy, h * 0.52, pulse, gate.label, accent, accent2);
   }
 
-  for (const [i, proposal] of PROPOSALS.entries()) {
-    const progress = (phase + i / PROPOSALS.length) % 1;
+  for (const [i, proposal] of proposals.entries()) {
+    const progress = (phase + i / proposals.length) % 1;
     const rejectedAt = proposal.rejectAt;
     const y = proposalY(proposal, cy, band, t);
     const gateStop = rejectedAt >= 0 ? gateProgress(rejectedAt) : 1.1;
@@ -309,6 +320,7 @@ function drawStream(
           fade * 0.8,
           "#ff5d9a",
           true,
+          compact,
         );
       }
       continue;
@@ -321,9 +333,10 @@ function drawStream(
       (progress > gateProgress(2) ? 1 : 0);
     const brighten = passed / GATES.length;
     const color = brighten > 0.66 ? "rgba(250,248,255,0.95)" : brighten > 0.33 ? accent : accent2;
-    const alpha = 0.42 + brighten * 0.44 + smooth01(progress) * 0.1;
+    const fadeIn = 0.25 + 0.75 * smooth01(progress / 0.1);
+    const alpha = (0.42 + brighten * 0.44 + smooth01(progress) * 0.1) * fadeIn;
 
-    drawProposalObject(ctx, x, y, proposal, scale, alpha, color, false);
+    drawProposalObject(ctx, x, y, proposal, scale, alpha, color, false, compact);
   }
 }
 

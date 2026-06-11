@@ -196,7 +196,12 @@ function drawTerrainGrid(ctx: CanvasRenderingContext2D, rect: Rect, accent2: str
   ctx.restore();
 }
 
-function drawTiles(ctx: CanvasRenderingContext2D, rect: Rect, reveal: number): void {
+function drawTiles(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  sweep: number,
+  strength: number,
+): void {
   const tileW = rect.w / COLS;
   const tileH = rect.h / ROWS;
   const inset = Math.max(0.7, Math.min(tileW, tileH) * 0.03);
@@ -211,18 +216,19 @@ function drawTiles(ctx: CanvasRenderingContext2D, rect: Rect, reveal: number): v
     }
   }
 
-  if (reveal <= 0.01) return;
+  if (sweep <= 0.01 || strength <= 0.01) return;
 
   ctx.save();
   ctx.beginPath();
-  ctx.rect(rect.x, rect.y, rect.w * reveal, rect.h);
+  ctx.rect(rect.x, rect.y, rect.w * sweep, rect.h);
   ctx.clip();
+  ctx.globalAlpha = strength;
   for (let row = 0; row < ROWS; row += 1) {
     for (let col = 0; col < COLS; col += 1) {
       const data = tileData(col, row);
       const x = rect.x + col * tileW;
       const y = rect.y + row * tileH;
-      ctx.fillStyle = severityFill(data, reveal);
+      ctx.fillStyle = severityFill(data, 1);
       ctx.fillRect(x + inset, y + inset, tileW - inset * 2, tileH - inset * 2);
     }
   }
@@ -257,42 +263,68 @@ function drawContours(ctx: CanvasRenderingContext2D, rect: Rect, accent: string,
   ctx.globalAlpha = 1;
 }
 
-function drawRevealDivider(ctx: CanvasRenderingContext2D, rect: Rect, reveal: number): void {
+function drawRevealDivider(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  reveal: number,
+  accent2: string,
+): void {
   if (reveal <= 0.03 || reveal >= 0.98) return;
 
   const x = rect.x + rect.w * reveal;
   ctx.save();
-  ctx.strokeStyle = "rgba(235, 255, 243, 0.46)";
-  ctx.lineWidth = Math.max(1, rect.w * 0.002);
+  ctx.beginPath();
+  ctx.rect(rect.x, rect.y, rect.w, rect.h);
+  ctx.clip();
+
+  // soft trailing band behind the scanline
+  const band = ctx.createLinearGradient(x - rect.w * 0.08, 0, x, 0);
+  band.addColorStop(0, "rgba(235, 255, 243, 0)");
+  band.addColorStop(1, "rgba(235, 255, 243, 0.14)");
+  ctx.fillStyle = band;
+  ctx.fillRect(x - rect.w * 0.08, rect.y, rect.w * 0.08, rect.h);
+
+  ctx.strokeStyle = "rgba(240, 255, 246, 0.85)";
+  ctx.lineWidth = Math.max(1.2, rect.w * 0.0028);
+  ctx.shadowColor = accent2;
+  ctx.shadowBlur = Math.max(6, rect.w * 0.015);
   ctx.beginPath();
   ctx.moveTo(x, rect.y);
   ctx.lineTo(x, rect.y + rect.h);
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  ctx.fillStyle = "rgba(235, 255, 243, 0.56)";
-  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = "rgba(240, 255, 246, 0.9)";
   ctx.beginPath();
   ctx.arc(x, rect.y + rect.h * 0.5, Math.max(2.5, rect.w * 0.006), 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
 
-function drawLabels(ctx: CanvasRenderingContext2D, rect: Rect, reveal: number): void {
+function drawLabels(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  reveal: number,
+  compact: boolean,
+): void {
   ctx.save();
-  ctx.font = "600 10px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif";
+  const fs = compact ? 9 : 10;
+  ctx.font = `600 ${fs}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textBaseline = "top";
   ctx.fillStyle = "rgba(229, 255, 240, 0.78)";
   ctx.globalAlpha = 0.7;
-  ctx.fillText("BEFORE NBR", rect.x + 8, rect.y + 8);
+  ctx.fillText(compact ? "BEFORE" : "BEFORE NBR", rect.x + 8, rect.y + 8);
   if (reveal > 0.26) {
     ctx.textAlign = "right";
-    ctx.fillText("dNBR MASK", rect.x + rect.w - 8, rect.y + 8);
+    ctx.fillText(compact ? "dNBR" : "dNBR MASK", rect.x + rect.w - 8, rect.y + 8);
   }
 
-  ctx.textAlign = "left";
-  ctx.textBaseline = "bottom";
-  ctx.globalAlpha = 0.56;
-  ctx.fillText("dNBR = NBR_pre - NBR_post", rect.x + 8, rect.y + rect.h - 8);
+  if (!compact) {
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.globalAlpha = 0.56;
+    ctx.fillText("dNBR = NBR_pre - NBR_post", rect.x + 8, rect.y + rect.h - 8);
+  }
   ctx.restore();
 }
 
@@ -302,7 +334,8 @@ function drawLegend(ctx: CanvasRenderingContext2D, rect: Rect): void {
   const y = rect.y + rect.h + Math.min(22, rect.h * 0.08);
 
   ctx.save();
-  ctx.font = "500 10px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif";
+  const fs = Math.max(8, Math.min(10, rect.w * 0.026));
+  ctx.font = `500 ${fs}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textBaseline = "middle";
   ctx.fillStyle = "rgba(229, 255, 240, 0.7)";
   ctx.globalAlpha = 0.82;
@@ -334,20 +367,19 @@ export default function GeoScanFigure({
       { active, reduced, staticT: 5.1, speed: 0.014 },
       ({ ctx, w, h }, t) => {
         const rect = mapRect(w, h);
+        const compact = h < 200;
         const phase = (t % 7.2) / 7.2;
-        const reveal =
-          phase < 0.18
-            ? 0
-            : phase < 0.66
-              ? smooth01((phase - 0.18) / 0.48)
-              : 1;
+        // short "before" beat → scan sweep → hold the mask → fade back
+        const sweep =
+          phase < 0.06 ? 0 : phase < 0.5 ? smooth01((phase - 0.06) / 0.44) : 1;
+        const strength = phase < 0.84 ? 1 : 1 - smooth01((phase - 0.84) / 0.16);
 
         drawBackdrop(ctx, w, h, accent, accent2);
-        drawTiles(ctx, rect, reveal);
+        drawTiles(ctx, rect, sweep, strength);
         drawContours(ctx, rect, accent, accent2);
         drawTerrainGrid(ctx, rect, accent2);
-        drawRevealDivider(ctx, rect, reveal);
-        drawLabels(ctx, rect, reveal);
+        drawRevealDivider(ctx, rect, sweep, accent2);
+        drawLabels(ctx, rect, sweep * strength, compact);
         strokeMapFrame(ctx, rect, accent);
         drawLegend(ctx, rect);
       },

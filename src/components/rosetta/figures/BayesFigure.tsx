@@ -317,9 +317,17 @@ export default function Component({ accent, accent2, active }: FigureProps) {
 
         glow(ctx, estimateX, estimateY, minSide * 0.055, accent, 0.12);
 
-        drawLabel(ctx, "posterior", left + (right - left) * 0.58, top + plotH * 0.17, "white", 0.54);
+        drawLabel(ctx, "posterior", left + (right - left) * 0.68, top + plotH * 0.3, "white", 0.54);
         drawLabel(ctx, "95% CI", left + (right - left) * 0.43, base + labelSize * 1.7, accent2, 0.58);
-        drawLabel(ctx, "estimate", estimateX + labelSize * 0.8, top + plotH * 0.12, accent, 0.55);
+        const estimateLabelW = ctx.measureText("estimate").width;
+        drawLabel(
+          ctx,
+          "estimate",
+          estimateX - estimateLabelW - labelSize * 0.6,
+          top + plotH * 0.12,
+          accent,
+          0.55,
+        );
       },
     );
   }, [accent, accent2, active, reduced]);

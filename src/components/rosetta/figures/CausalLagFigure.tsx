@@ -15,6 +15,7 @@ function drawNode(
   radius: number,
   label: string,
   color: string,
+  fontPx: number,
 ): void {
   glow(ctx, x, y, radius * 2.8, color, 0.14);
   ctx.save();
@@ -33,10 +34,10 @@ function drawNode(
   ctx.fill();
   ctx.globalAlpha = 0.8;
   ctx.fillStyle = "rgba(229, 255, 240, 0.82)";
-  ctx.font = "500 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.font = `500 ${fontPx}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText(label, x, y + radius + 11);
+  ctx.fillText(label, x, y + radius + fontPx * 0.6);
   ctx.restore();
 }
 
@@ -97,6 +98,8 @@ function drawImpulseResponses(
   priceColor: string,
   reveal: number,
   t: number,
+  compact: boolean,
+  fontPx: number,
 ): void {
   const steps = 90;
   const width = x1 - x0;
@@ -120,10 +123,10 @@ function drawImpulseResponses(
   ctx.stroke();
 
   ctx.fillStyle = "rgba(229, 255, 240, 0.58)";
-  ctx.font = "500 10px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.font = `500 ${Math.max(8, fontPx - 2)}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  for (const day of [0, HALF_LIFE_DAYS, RESPONSE_DAYS]) {
+  for (const day of compact ? [0, HALF_LIFE_DAYS] : [0, HALF_LIFE_DAYS, RESPONSE_DAYS]) {
     const x = x0 + width * (day / RESPONSE_DAYS);
     ctx.globalAlpha = day === HALF_LIFE_DAYS ? 0.72 : 0.5;
     ctx.beginPath();
@@ -184,13 +187,16 @@ function drawImpulseResponses(
 
   ctx.globalAlpha = 0.78;
   ctx.fillStyle = "rgba(229, 255, 240, 0.78)";
-  ctx.font = "500 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.font = `500 ${fontPx}px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText("storage +", x0 + 10, yBase - amp - 8);
-  ctx.fillText("price -", x0 + 10, yBase + amp * 0.82 + 10);
+  if (!compact) {
+    // skip the in-plot duplicates on small tiles; the node labels carry them
+    ctx.fillText("storage +", x0 + 10, yBase - amp - 8);
+    ctx.fillText("price -", x0 + 10, yBase + amp * 0.82 + 10);
+  }
   ctx.globalAlpha = 0.72;
-  ctx.fillText("~44-day half-life", halfX + 9, yBase);
+  ctx.fillText(compact ? "44 d half-life" : "~44-day half-life", halfX + 9, yBase);
   ctx.restore();
 }
 
@@ -223,7 +229,9 @@ function drawFrame(
   accent2: string,
 ): void {
   const scale = Math.min(w, h);
-  const nodeRadius = Math.max(10, scale * 0.052);
+  const compact = h < 200;
+  const fontPx = Math.max(9, Math.min(13, scale * 0.048));
+  const nodeRadius = Math.max(compact ? 7 : 10, scale * 0.052);
   const nodeY = h * 0.28;
   const rainfallX = w * 0.18;
   const storageX = w * 0.5;
@@ -243,11 +251,23 @@ function drawFrame(
   drawArrow(ctx, rainfallX, nodeY, storageX, nodeY, accent, t, 11);
   drawArrow(ctx, storageX, nodeY, priceX, nodeY, accent2, t, 23);
 
-  drawNode(ctx, rainfallX, nodeY, nodeRadius, "rainfall", accent);
-  drawNode(ctx, storageX, nodeY, nodeRadius, "storage +", accent);
-  drawNode(ctx, priceX, nodeY, nodeRadius, "price -", accent2);
+  drawNode(ctx, rainfallX, nodeY, nodeRadius, "rainfall", accent, fontPx);
+  drawNode(ctx, storageX, nodeY, nodeRadius, "storage +", accent, fontPx);
+  drawNode(ctx, priceX, nodeY, nodeRadius, "price -", accent2, fontPx);
 
-  drawImpulseResponses(ctx, curveX0, curveX1, yBase, amp, accent, accent2, reveal, t);
+  drawImpulseResponses(
+    ctx,
+    curveX0,
+    curveX1,
+    yBase,
+    amp,
+    accent,
+    accent2,
+    reveal,
+    t,
+    compact,
+    fontPx,
+  );
 }
 
 export default function CausalLagFigure({ accent, accent2, active }: FigureProps) {

@@ -174,6 +174,7 @@ function drawOrchestrator(
   accent: string,
   accent2: string,
   scale: number,
+  compact: boolean,
 ): void {
   const r = scale * (28 + activeLevel * 2);
   glow(ctx, p.x, p.y, r * 3.4, accent, 0.12 + activeLevel * 0.12);
@@ -210,11 +211,15 @@ function drawOrchestrator(
   ctx.font = `${Math.max(10, scale * 11)}px ui-sans-serif, system-ui, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("ORCHESTRATOR", p.x, p.y - scale * 2);
-  ctx.globalAlpha = 0.46 + activeLevel * 0.32;
-  ctx.fillStyle = accent2;
-  ctx.font = `${Math.max(7, scale * 7)}px ui-sans-serif, system-ui, sans-serif`;
-  ctx.fillText("ROUTER", p.x, p.y + scale * 11);
+  if (compact) {
+    ctx.fillText("ORCH", p.x, p.y + scale * 0.5);
+  } else {
+    ctx.fillText("ORCHESTRATOR", p.x, p.y - scale * 2);
+    ctx.globalAlpha = 0.46 + activeLevel * 0.32;
+    ctx.fillStyle = accent2;
+    ctx.font = `${Math.max(7, scale * 7)}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.fillText("ROUTER", p.x, p.y + scale * 11);
+  }
   ctx.restore();
 }
 
@@ -299,15 +304,26 @@ export default function AgentFlowFigure({
       { active, reduced: Boolean(reduced), staticT: 3.35, speed: 0.016 },
       ({ ctx, w, h }, t) => {
         const scale = Math.max(0.72, Math.min(w, h) / 420);
-        const orch = toPoint(ORCHESTRATOR, w, h);
+        const compact = h < 200;
+        // compact tiles drop the tool layer and spread the remaining nodes;
+        // full size lifts the orchestrator so the canvas top is not empty
+        const mapY = (y: number) => {
+          if (y === ORCHESTRATOR.y) return compact ? 0.3 : 0.28;
+          if (y < 0.6) return compact ? 0.66 : 0.53; // outer agents
+          if (y < 0.8) return compact ? 0.78 : 0.66; // inner agents
+          return y; // tools
+        };
+        const orch = toPoint({ x: ORCHESTRATOR.x, y: mapY(ORCHESTRATOR.y) }, w, h);
         const agents = AGENTS.map((agent) => ({
           ...agent,
-          p: toPoint(agent, w, h),
+          p: toPoint({ x: agent.x, y: mapY(agent.y) }, w, h),
         }));
-        const tools = TOOLS.map((tool) => ({
-          ...tool,
-          p: toPoint(tool, w, h),
-        }));
+        const tools = compact
+          ? []
+          : TOOLS.map((tool) => ({
+              ...tool,
+              p: toPoint(tool, w, h),
+            }));
 
         const step = 2.25;
         const rawIndex = Math.floor(t / step);
@@ -368,7 +384,7 @@ export default function AgentFlowFigure({
           }
         }
 
-        drawOrchestrator(ctx, orch, clamp01(orchLevel), accent, accent2, scale);
+        drawOrchestrator(ctx, orch, clamp01(orchLevel), accent, accent2, scale, compact);
 
         for (const agent of agents) {
           const isActive = agent.seed === AGENTS[agentIndex]?.seed;
