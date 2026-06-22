@@ -120,6 +120,7 @@ export type ChapterFigure =
   | "agentflow"
   | "rag"
   | "guardrail"
+  | "groundops"
   | "pitch"
   | "tracking"
   | "dilemma"
@@ -171,6 +172,9 @@ export interface FaceChapterData {
   kicker: string; // short eyebrow above the chapter title, e.g. "Scientist"
   title: string; // big chapter title
   intro: string; // thesis paragraph
+  /** A flagship beat given a prominent "spotlight" treatment at the top of the
+   * chapter (takes the hero slot, with its link surfaced inline). */
+  spotlight?: ChapterBeat;
   heroFigure?: ChapterFigure; // the primary figure under the chapter header
   ideas: ChapterIdea[];
   beats: ChapterBeat[];

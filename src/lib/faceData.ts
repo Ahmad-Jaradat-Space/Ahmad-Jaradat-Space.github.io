@@ -194,6 +194,7 @@ export const FACES: Face[] = [
       { title: "tas1-rainfall-to-price", description: "Causal chain: rainfall → hydro storage → electricity price.", type: "Time-series", repoUrl: `${GH}/tas1-rainfall-to-price` },
       { title: "tas1-price-basslink-forecast", description: "Probabilistic price forecasting across the Basslink HVDC.", type: "Forecasting", repoUrl: `${GH}/tas1-price-basslink-forecast` },
       { title: "hydro-storage-scheduling", description: "Stochastic dynamic programming for reservoir dispatch.", type: "Optimisation", repoUrl: `${GH}/hydro-storage-scheduling` },
+      { title: "GroundOps-Copilot", description: "From-scratch AR, Mamba2-hybrid and masked-diffusion models for bilingual tool-calling.", type: "Language models", repoUrl: `${GH}/GroundOps-Copilot` },
       { title: "Tactical camera tracking", description: "YOLOv8 and ByteTrack player and ball tracking from match footage.", type: "Computer vision" },
     ],
     chapter: {
@@ -286,6 +287,21 @@ export const FACES: Face[] = [
           linkLabel: "View on GitHub",
         },
         {
+          title: "GroundOps-Copilot, models trained from scratch",
+          kind: "Language models, from scratch",
+          icon: "Brain",
+          figure: "groundops",
+          summary:
+            "The planning core of my bilingual ground-station copilot, built as a controlled model comparison. Three families at a matched ~33M parameters, an autoregressive decoder, a Transformer-Mamba2 hybrid, and a masked-diffusion language model, are trained from scratch and scored on the same held-out tool-calling set. The autoregressive planner wins clearly, at 0.96 JSON validity and 0.72 task success, with honest bootstrap confidence intervals throughout. Shared with my AI-engineering work.",
+          facts: [
+            { label: "Params", value: "~33M each" },
+            { label: "Families", value: "AR, Mamba2, diffusion" },
+            { label: "Best JSON", value: "0.96 valid" },
+          ],
+          href: `${GH}/GroundOps-Copilot`,
+          linkLabel: "View on GitHub",
+        },
+        {
           title: "Tactical camera tracking",
           kind: "Computer vision",
           icon: "Film",
@@ -337,9 +353,10 @@ export const FACES: Face[] = [
       { value: "Multi-agent", label: "LangGraph systems", source: "Session Architect, TacLab" },
       { value: "1", label: "Live agent app", source: "auroragaze.fly.dev (DSCOVR briefings)" },
       { value: "RAG", label: "+ LLM tooling", source: "retrieval + verification layers" },
-      { value: "150-pg", label: "LLM-engineering notes", source: "personal long-form reference" },
+      { value: "EN+AR", label: "Voice ground-station copilot", source: "GroundOps-Copilot — bilingual, offline, safety-gated tool calls" },
     ],
     featuredProjects: [
+      { title: "GroundOps-Copilot", description: "Voice-first bilingual ground-station copilot: safety-gated, tool-grounded actions, offline.", type: "Open source", repoUrl: `${GH}/GroundOps-Copilot` },
       { title: "AuroraGaze", description: "Multi-agent solar-wind and aurora briefings, grounded and cited.", type: "Live app", liveUrl: "https://auroragaze.fly.dev" },
       { title: "Session Architect", description: "LangGraph multi-agent designer for football training sessions.", type: "Agents" },
       { title: "Tutor", description: "Adaptive hub-and-spoke skill tutor with persistent learner state.", type: "Agents" },
@@ -352,6 +369,22 @@ export const FACES: Face[] = [
       intro:
         "I build multi-agent systems that work on real problems. A coordinator hands work to focused specialists, answers lean on retrieved evidence, and the parts that need to be dependable are kept dependable rather than left to chance.",
       heroFigure: "agentflow",
+      spotlight: {
+        title: "GroundOps-Copilot",
+        kind: "Flagship · Open source",
+        icon: "Satellite",
+        figure: "groundops",
+        summary:
+          "A voice-first copilot for satellite ground-station operators. Spoken English and Arabic commands become safety-gated, schema-checked tool calls, with every action dry-run, audited, and able to run offline on a laptop. Three model families, each around 33M parameters and trained from scratch, are compared head to head; the autoregressive planner reaches 0.96 JSON validity and 1.00 safety compliance on a held-out test set.",
+        facts: [
+          { label: "Languages", value: "English + Arabic" },
+          { label: "Planner", value: "0.96 JSON valid" },
+          { label: "Safety", value: "1.00 compliance" },
+          { label: "Runs", value: "Offline, on-device" },
+        ],
+        href: `${GH}/GroundOps-Copilot`,
+        linkLabel: "View on GitHub",
+      },
       ideas: [
         {
           title: "Coordinate, do not monolith",

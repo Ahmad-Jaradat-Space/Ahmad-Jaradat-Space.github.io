@@ -1370,6 +1370,85 @@ html {
   background: rgba(2, 7, 14, 0.6);
 }
 
+/* ---- spotlight (flagship project, takes the hero slot) ---- */
+.r-spotlight {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(1.4rem, 3vw, 2.6rem);
+  align-items: center;
+  margin: clamp(2rem, 5vh, 3.5rem) 0 clamp(2.5rem, 6vh, 4rem);
+  padding: clamp(1.5rem, 3vw, 2.6rem);
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.08));
+  background:
+    radial-gradient(90% 130% at 92% 0%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, rgba(8, 14, 24, 0.7), rgba(3, 9, 16, 0.62));
+  backdrop-filter: blur(7px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 60px -28px color-mix(in srgb, var(--accent) 80%, transparent),
+    0 40px 90px -55px rgba(0, 0, 0, 0.9);
+}
+.r-spotlight-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.r-spotlight-ribbon {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display), serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bg, #02080f);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2, var(--accent)));
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  margin-bottom: 0.9rem;
+}
+.r-spotlight-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-serif), serif;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  line-height: 1.12;
+  margin: 0 0 0.7rem;
+  color: var(--text);
+  text-wrap: balance;
+}
+.r-spotlight-title svg {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  flex: none;
+}
+.r-spotlight-summary {
+  font-size: clamp(0.96rem, 1.2vw, 1.04rem);
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--text) 80%, transparent);
+  margin: 0 0 1.1rem;
+  text-wrap: pretty;
+}
+.r-spotlight .r-beat-facts {
+  margin-bottom: 1.3rem;
+}
+.r-spotlight-cta svg {
+  width: 16px;
+  height: 16px;
+}
+.r-spotlight-fig {
+  position: relative;
+  height: clamp(240px, 38vh, 360px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.06));
+  background: rgba(2, 7, 14, 0.6);
+}
+
 /* ---- sources (only outbound links) ---- */
 .r-chapter-sources {
   margin-top: clamp(2.5rem, 6vh, 4rem);
@@ -1426,6 +1505,12 @@ html {
 @media (max-width: 760px) {
   .r-beat.has-fig {
     grid-template-columns: 1fr;
+  }
+  .r-spotlight {
+    grid-template-columns: 1fr;
+  }
+  .r-spotlight-fig {
+    order: -1;
   }
 }
 

@@ -19,6 +19,7 @@ export const FIGURES: Record<ChapterFigure, ComponentType<FigureProps>> = {
   agentflow: dynamic(() => import("./AgentFlowFigure"), { ssr: false }),
   rag: dynamic(() => import("./RagFlowFigure"), { ssr: false }),
   guardrail: dynamic(() => import("./GuardrailFigure"), { ssr: false }),
+  groundops: dynamic(() => import("./GroundOpsFigure"), { ssr: false }),
   pitch: dynamic(() => import("./PitchControlFigure"), { ssr: false }),
   tracking: dynamic(() => import("./TrackingFigure"), { ssr: false }),
   dilemma: dynamic(() => import("./DilemmaFigure"), { ssr: false }),

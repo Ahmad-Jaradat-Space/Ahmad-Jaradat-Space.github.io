@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, type CSSProperties } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import type { ChapterFigure, ChapterImage, Face } from "@/lib/types";
+import { motion, useInView, useReducedMotion, type MotionProps } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
+import type { ChapterBeat, ChapterFigure, ChapterImage, Face } from "@/lib/types";
 import { themeVars } from "@/lib/navigation";
 import { ICONS } from "./icons";
 import { FIGURES } from "./figures/registry";
@@ -41,6 +42,73 @@ function Visual({
     );
   }
   return null;
+}
+
+/**
+ * A flagship beat given prominent placement at the top of a chapter: it takes the
+ * hero slot, pairs the story with its figure, and surfaces its link inline (rather
+ * than only in the closing "Sources" block).
+ */
+function Spotlight({
+  beat,
+  accent,
+  accent2,
+  active,
+  reveal,
+}: {
+  beat: ChapterBeat;
+  accent: string;
+  accent2: string;
+  active: boolean;
+  reveal: MotionProps;
+}) {
+  const Icon = beat.icon ? ICONS[beat.icon] : null;
+  const hasVis = Boolean(beat.figure || beat.image);
+  return (
+    <motion.article className="r-spotlight" {...reveal}>
+      <div className="r-spotlight-body">
+        <span className="r-spotlight-ribbon">Featured</span>
+        {beat.kind && <span className="r-beat-kind">{beat.kind}</span>}
+        <h3 className="r-spotlight-title">
+          {Icon && <Icon aria-hidden strokeWidth={1.5} />}
+          <span>{beat.title}</span>
+        </h3>
+        <p className="r-spotlight-summary">{beat.summary}</p>
+        {beat.facts && beat.facts.length > 0 && (
+          <div className="r-beat-facts">
+            {beat.facts.map((f) => (
+              <span className="r-fact" key={f.label}>
+                <span className="r-fact-l">{f.label}</span>
+                <span className="r-fact-v">{f.value}</span>
+              </span>
+            ))}
+          </div>
+        )}
+        {beat.href && (
+          <a
+            className="r-btn r-spotlight-cta"
+            href={beat.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {beat.linkLabel ?? "Open"}
+            <ArrowUpRight aria-hidden />
+          </a>
+        )}
+      </div>
+      {hasVis && (
+        <div className="r-spotlight-fig">
+          <Visual
+            figure={beat.figure}
+            image={beat.image}
+            accent={accent}
+            accent2={accent2}
+            active={active}
+          />
+        </div>
+      )}
+    </motion.article>
+  );
 }
 
 /**
@@ -89,7 +157,15 @@ export function FaceChapter({ face }: { face: Face }) {
           <p className="r-chapter-intro">{ch.intro}</p>
         </motion.header>
 
-        {ch.heroFigure && (
+        {ch.spotlight ? (
+          <Spotlight
+            beat={ch.spotlight}
+            accent={accent}
+            accent2={accent2}
+            active={active}
+            reveal={reveal}
+          />
+        ) : ch.heroFigure ? (
           <motion.div className="r-chapter-hero-fig" {...reveal}>
             <Visual
               figure={ch.heroFigure}
@@ -98,7 +174,7 @@ export function FaceChapter({ face }: { face: Face }) {
               active={active}
             />
           </motion.div>
-        )}
+        ) : null}
 
         <div className="r-ideas">
           {ch.ideas.map((idea) => {
